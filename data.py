@@ -6,6 +6,7 @@ import nltk
 import collections
 import sys
 import argparse
+from tqdm import tqdm
 parser = argparse.ArgumentParser(description='Process data,create wordvecs from glove',prog = "data.py")
 parser.add_argument('--session', type = str, choices = ['train','dev'],help='choose to process over train/dev.')
 parser.add_argument('--mode',type = str,choices=['id','vec',''],
@@ -19,8 +20,8 @@ mode = args.mode
 train_file = "../data/train-v1.1.json"
 dev_file = "../data/dev-v1.1.json"
 json_file = ("../data/"+session+"-v1.1.json")
-glove_vecs_50d = "../data/glove.6B/glove.6B.50d.txt"
-glove_vecs_sample = "../data/glove.6B/sample_glove_50d.txt"
+glove_vecs_50d = "../data/glove.6B.50d.txt"
+glove_vecs_sample = "../data/sample_glove_50d.txt"
 glove_vecs = glove_vecs_50d
 
 glove_dict = collections.OrderedDict()
@@ -38,8 +39,8 @@ def data_process(session,mode):
         fieldnames = ['Title','Id','context','question','answers']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
-        for i in range(len(train_data['data'])):
-            print ("Processing "+str(i)+"Title")
+        for i in tqdm(range(len(train_data['data']))):
+            #print ("Processing "+str(i)+"Title")
             title = train_data['data'][i]['title']
             for j in range(len(train_data['data'][i]['paragraphs'])):
                 #for k in range(len(train_data['data'][i]['paragraphs'][j])):
@@ -75,7 +76,7 @@ def create_vec(sent,mode):
     if mode == 'id':
         return 1
     elif mode == 'vec':
-        print ([word2vec(token) for token in nltk.word_tokenize(sent.lower())])
+        return ([word2vec(token) for token in nltk.word_tokenize(sent.lower())])
     else:
         return sent
 def main():
@@ -90,10 +91,11 @@ def main():
 
     elif mode == 'vec':
         print ("vec mode....")
-        for word in range(len(glove)):
+        print ("Creating Dictionary...")
+        for word in tqdm(range(len(glove))):
             glove_dict[glove[word].split()[0]] = glove[word].split()[1:]
-
-        for key in list(glove_dict.keys()):
+        print ("Creating rev Dictionary...")
+        for key in tqdm(list(glove_dict.keys())):
             glove_dict_rev[str(glove_dict[key])] = key
             #glove_dict_rev[glove_dict[key]] = key
         data_process(session,mode)
