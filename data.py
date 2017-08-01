@@ -16,11 +16,11 @@ session = args.session
 print (session+" session")
 mode = args.mode
 
-train_file = "../../data/train-v1.1.json"
-dev_file = "../../data/dev-v1.1.json"
-json_file = ("../../data/"+session+"-v1.1.json")
-glove_vecs_50d = "../../data/glove.6B/glove.6B.50d.txt"
-glove_vecs_sample = "../../data/glove.6B/sample_glove_50d.txt"
+train_file = "../data/train-v1.1.json"
+dev_file = "../data/dev-v1.1.json"
+json_file = ("../data/"+session+"-v1.1.json")
+glove_vecs_50d = "../data/glove.6B/glove.6B.50d.txt"
+glove_vecs_sample = "../data/glove.6B/sample_glove_50d.txt"
 glove_vecs = glove_vecs_50d
 
 glove_dict = collections.OrderedDict()
