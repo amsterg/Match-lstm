@@ -7,6 +7,7 @@ import collections
 import sys
 import argparse
 from tqdm import tqdm
+from multi_key_dict import multi_key_dict
 parser = argparse.ArgumentParser(description='Process data,create wordvecs from glove',prog = "data.py")
 parser.add_argument('--session', type = str, choices = ['train','dev'],help='choose to process over train/dev.')
 parser.add_argument('--mode',type = str,choices=['id','vec',''],
@@ -34,30 +35,45 @@ with open(glove_vecs) as glove_file:
 def data_process(session,mode):
     with open(json_file,'r') as f:
         train_data = json.load(f)
+    id_count = 0
+    fid = open(session+"_ids.json",'w')
+    with open(session+"_context_ids.json",'w') as file:
 
-    with open(session+"_words.csv",'w') as csvfile:
-        fieldnames = ['Title','Id','context','question','answers']
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-        writer.writeheader()
-        for i in tqdm(range(len(train_data['data']))):
-            #print ("Processing "+str(i)+"Title")
-            title = train_data['data'][i]['title']
-            for j in range(len(train_data['data'][i]['paragraphs'])):
-                #for k in range(len(train_data['data'][i]['paragraphs'][j])):
-                context = create_vec((train_data['data'][i]['paragraphs'][j]['context']),mode)
-                #print (context[0:2])
-                for k in range(len(train_data['data'][i]['paragraphs'][j]['qas'])):
-                    question = create_vec(train_data['data'][i]['paragraphs'][j]['qas'][k]['question'],mode)
-                    answers = train_data['data'][i]['paragraphs'][j]['qas'][k]['answers']
-                    id = train_data['data'][i]['paragraphs'][j]['qas'][k]['id']
-                    answers_dict = {}
-                    for l in range(len(answers)):
-                        #print (answers[l]['answer_start'],answers[l]['answer_start']+len(answers[l]['text']))
-                        answers_dict[answers[l]['answer_start']] = create_vec(answers[l]['text'],mode)
+        with open(session+"_words.csv",'w') as csvfile:
+            fieldnames = ['Title','Id','context','question','answers']
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            for i in tqdm(range(len(train_data['data']))):
+                #print ("Processing "+str(i)+"Title")
+                #title = train_data['data'][i]['title']
+                for j in range(len(train_data['data'][i]['paragraphs'])):
+                    #for k in range(len(train_data['data'][i]['paragraphs'][j])):
+                    context = create_vec((train_data['data'][i]['paragraphs'][j]['context']),mode)
+                    context_dict = collections.OrderedDict()
+                    context_dict[id_count] = context
+                    #id_count += 1
+                    json.dump(context_dict,file)
+                    #print (context[0:2])
+                    ids = []
+                    mkd = multi_key_dict()
+                    for k in range(len(train_data['data'][i]['paragraphs'][j]['qas'])):
+                        question = create_vec(train_data['data'][i]['paragraphs'][j]['qas'][k]['question'],mode)
+                        answers = train_data['data'][i]['paragraphs'][j]['qas'][k]['answers']
+                        id = train_data['data'][i]['paragraphs'][j]['qas'][k]['id']
+                        json.dump({id:id_count},fid)
+                        answers_dict = {}
+                        for l in range(len(answers)):
+                            #print (answers[l]['answer_start'],answers[l]['answer_start']+len(answers[l]['text']))
+                            answers_dict[answers[l]['answer_start']] = create_vec(answers[l]['text'],mode)
 
-                        #print (context[answers[l]['answer_start']:answers[l]['answer_start']+len(answers[l]['text'])])
-                        writer.writerow({'Title': title, 'Id': id,'context': context,'question': question, 'answers': answers_dict})
+                            #print (context[answers[l]['answer_start']:answers[l]['answer_start']+len(answers[l]['text'])])
+                            #writer.writerow({'Title': title, 'Id': id,'context': context,'question': question, 'answers': answers_dict})
+                        writer.writerow({'Id': id,'question': question, 'answers': answers_dict})
+                        #ids += id
+                        #mkd[ids] = context
+                    id_count += 1
 
+    fid.close()
 
 def word2id(word):
     return glove_dict[word]
