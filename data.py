@@ -40,7 +40,7 @@ def data_process(session,mode):
     with open(session+"_context_ids.json",'w') as file:
 
         with open(session+"_words.csv",'w') as csvfile:
-            fieldnames = ['Title','Id','context','question','answers']
+            fieldnames = ['Id','question','answers']
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
             writer.writeheader()
             for i in tqdm(range(len(train_data['data']))):
